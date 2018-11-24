@@ -1,10 +1,11 @@
-package com.mitrais.khotim.rmsspring.apis;
+package com.mitrais.khotim.rmsspring.server.apis;
 
-import com.mitrais.khotim.rmsspring.domains.Book;
-import com.mitrais.khotim.rmsspring.exceptions.ErrorDetails;
-import com.mitrais.khotim.rmsspring.exceptions.ResourceNotFoundException;
-import com.mitrais.khotim.rmsspring.assemblers.BookResourceAssembler;
-import com.mitrais.khotim.rmsspring.services.BookService;
+import com.mitrais.khotim.rmsspring.server.assemblers.BookResourceAssembler;
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.exceptions.ErrorDetails;
+import com.mitrais.khotim.rmsspring.server.exceptions.ResourceNotFoundException;
+import com.mitrais.khotim.rmsspring.server.services.BookService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.Resource;

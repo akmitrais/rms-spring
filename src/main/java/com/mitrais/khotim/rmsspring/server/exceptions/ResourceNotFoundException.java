@@ -1,4 +1,4 @@
-package com.mitrais.khotim.rmsspring.exceptions;
+package com.mitrais.khotim.rmsspring.server.exceptions;
 
 import lombok.Getter;
 

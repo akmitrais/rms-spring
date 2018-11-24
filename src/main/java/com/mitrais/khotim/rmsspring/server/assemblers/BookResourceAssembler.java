@@ -1,7 +1,8 @@
-package com.mitrais.khotim.rmsspring.assemblers;
+package com.mitrais.khotim.rmsspring.server.assemblers;
 
-import com.mitrais.khotim.rmsspring.apis.BookController;
-import com.mitrais.khotim.rmsspring.domains.Book;
+import com.mitrais.khotim.rmsspring.server.apis.BookController;
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.ResourceAssembler;
 import org.springframework.stereotype.Component;

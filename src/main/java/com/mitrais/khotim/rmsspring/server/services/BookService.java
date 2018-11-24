@@ -1,7 +1,8 @@
-package com.mitrais.khotim.rmsspring.services;
+package com.mitrais.khotim.rmsspring.server.services;
 
-import com.mitrais.khotim.rmsspring.domains.Book;
-import com.mitrais.khotim.rmsspring.repositories.BookRepository;
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.repositories.BookRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.mitrais.khotim.rmsspring.domains;
+package com.mitrais.khotim.rmsspring.server.domains;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;

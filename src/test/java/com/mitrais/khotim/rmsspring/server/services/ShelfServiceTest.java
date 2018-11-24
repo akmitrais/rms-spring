@@ -1,8 +1,10 @@
-package com.mitrais.khotim.rmsspring.services;
+package com.mitrais.khotim.rmsspring.server.services;
 
-import com.mitrais.khotim.rmsspring.domains.Book;
-import com.mitrais.khotim.rmsspring.domains.Shelf;
-import com.mitrais.khotim.rmsspring.repositories.ShelfRepository;
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.domains.Shelf;
+import com.mitrais.khotim.rmsspring.server.repositories.ShelfRepository;
+import com.mitrais.khotim.rmsspring.server.services.ShelfService;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

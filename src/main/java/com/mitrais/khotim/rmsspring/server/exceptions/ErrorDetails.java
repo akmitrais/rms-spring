@@ -1,4 +1,4 @@
-package com.mitrais.khotim.rmsspring.exceptions;
+package com.mitrais.khotim.rmsspring.server.exceptions;
 
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;

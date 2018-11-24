@@ -1,8 +1,9 @@
 package com.mitrais.khotim.rmsspring.controllers;
 
-import com.mitrais.khotim.rmsspring.exceptions.ResourceNotFoundException;
 import com.mitrais.khotim.rmsspring.models.User;
-import com.mitrais.khotim.rmsspring.repositories.UserRepository;
+import com.mitrais.khotim.rmsspring.server.exceptions.ResourceNotFoundException;
+import com.mitrais.khotim.rmsspring.server.repositories.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

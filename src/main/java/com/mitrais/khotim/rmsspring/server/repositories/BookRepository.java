@@ -1,7 +1,8 @@
-package com.mitrais.khotim.rmsspring.repositories;
+package com.mitrais.khotim.rmsspring.server.repositories;
 
-import com.mitrais.khotim.rmsspring.domains.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.mitrais.khotim.rmsspring.server.domains.Book;
 
 import java.util.List;
 

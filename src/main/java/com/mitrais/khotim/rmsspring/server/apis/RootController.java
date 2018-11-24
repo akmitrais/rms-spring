@@ -1,4 +1,4 @@
-package com.mitrais.khotim.rmsspring.apis;
+package com.mitrais.khotim.rmsspring.server.apis;
 
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +10,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api")
 public class RootController {
     @GetMapping
     ResponseEntity<ResourceSupport> root() {

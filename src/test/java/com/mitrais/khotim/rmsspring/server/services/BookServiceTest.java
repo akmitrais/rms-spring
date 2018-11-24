@@ -1,7 +1,9 @@
-package com.mitrais.khotim.rmsspring.services;
+package com.mitrais.khotim.rmsspring.server.services;
 
-import com.mitrais.khotim.rmsspring.domains.Book;
-import com.mitrais.khotim.rmsspring.repositories.BookRepository;
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.repositories.BookRepository;
+import com.mitrais.khotim.rmsspring.server.services.BookService;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
