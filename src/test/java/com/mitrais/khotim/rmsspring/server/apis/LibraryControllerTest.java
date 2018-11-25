@@ -1,11 +1,18 @@
 package com.mitrais.khotim.rmsspring.server.apis;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mitrais.khotim.rmsspring.server.assemblers.ShelfResourceAssembler;
-import com.mitrais.khotim.rmsspring.server.domains.Book;
-import com.mitrais.khotim.rmsspring.server.domains.Shelf;
-import com.mitrais.khotim.rmsspring.server.services.BookService;
-import com.mitrais.khotim.rmsspring.server.services.ShelfService;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,17 +30,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mitrais.khotim.rmsspring.server.assemblers.ShelfResourceAssembler;
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.domains.Shelf;
+import com.mitrais.khotim.rmsspring.server.services.BookService;
+import com.mitrais.khotim.rmsspring.server.services.ShelfService;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(value = LibraryController.class, secure = false)
@@ -89,7 +91,6 @@ public class LibraryControllerTest {
                 .andExpect(jsonPath("_links.libraries.href", is(linkToAll)));
     }
 
-
     @Test
     public void getAllReturnsCorrectResponse() throws Exception {
         List<Shelf> shelves = Arrays.asList(shelf, shelf2);
@@ -110,7 +111,8 @@ public class LibraryControllerTest {
         Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.of(shelf));
         Mockito.when(assembler.toResource(shelf)).thenCallRealMethod();
 
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get("/api/libraries/{id}", shelf.getId());
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+        		.get("/api/libraries/{id}", shelf.getId());
         ResultActions result = mockMvc.perform(request).andDo(print()).andExpect(status().isOk());
 
         verifyJson(result);
@@ -122,129 +124,157 @@ public class LibraryControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
+    
+    @Test
+    public void createNewShelfReturnsCorrectResponse() throws Exception {
+    	Mockito.when(shelfService.save(Mockito.any(Shelf.class))).thenReturn(shelf);
+    	Mockito.when(assembler.toResource(Mockito.any(Shelf.class))).thenCallRealMethod();
+    	
+    	MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/api/libraries")
+    			.contentType(MediaType.APPLICATION_JSON_VALUE)
+    			.content(mapper.writeValueAsString(shelf));
+    	
+    	final ResultActions result = mockMvc.perform(request)
+    			.andDo(print())
+    			.andExpect(status().isCreated());
+    	
+    	verifyJson(result);
+    }
+    
+    @Test
+    public void createNewShelfReturnsValidationError() throws Exception {
+    	MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/api/libraries")
+    		  .contentType(MediaType.APPLICATION_JSON_VALUE)
+    		  .content(mapper.writeValueAsString(new Shelf()));
+      
+      mockMvc.perform(request)
+    		  .andDo(print())
+    		  .andExpect(status().isBadRequest());
+    }
 
     @Test
     public void addBookWhenShelfNotExists() throws Exception {
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/libraries/{id}/addBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+        		.patch("/api/libraries/{id}/addBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"shelf\":\"There's no shelf found with id " + shelf.getId() + "\"}"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("messages.shelf", is("There's no shelf found with id " + shelf.getId())));
     }
 
     @Test
     public void addBookWhenShelfReachedMaxCapacity() throws Exception {
         shelf.setCurrentCapacity(shelf.getMaxCapacity());
 
-        Mockito.when(shelfService.findById(shelf.getId())).thenReturn(Optional.of(shelf));
-        Mockito.when(bookService.findById(book.getId())).thenReturn(Optional.of(book));
+        Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.of(shelf));
+        Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
 
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/libraries/{id}/addBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+        		.patch("/api/libraries/{id}/addBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"shelf\":\"Shelf " + shelf.getName() + " already reached maximum capacity\"}"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("messages.shelf", is("Shelf " + shelf.getName() + " already reached maximum capacity")));
     }
 
     @Test
     public void addBookWhenBookNotExists() throws Exception {
-        Mockito.when(shelfService.findById(shelf.getId())).thenReturn(Optional.of(shelf));
+        Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.of(shelf));
 
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/libraries/{id}/addBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.patch("/api/libraries/{id}/addBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"book\":\"There's no book found with id " + book.getId() + "\"}"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("messages.book", is("There's no book found with id " + book.getId())));
     }
 
     @Test
     public void addBookWhenBookExistsInShelf() throws Exception {
         shelf.setBooks(Collections.singletonList(book));
 
-        Mockito.when(shelfService.findById(shelf.getId())).thenReturn(Optional.of(shelf));
-        Mockito.when(bookService.findById(book.getId())).thenReturn(Optional.of(book));
+        Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.of(shelf));
+        Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
 
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/libraries/{id}/addBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.patch("/api/libraries/{id}/addBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"shelf\":\"Book " + book.getTitle() + " already exists in shelf " + shelf.getName() + "\"}"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("messages.shelf", is("Book " + book.getTitle() + " already exists in shelf " + shelf.getName())));
     }
 
     @Test
     public void addBookWhenBookIsShelved() throws Exception {
         book.setStatus(Book.SHELVED);
 
-        Mockito.when(shelfService.findById(shelf.getId())).thenReturn(Optional.of(shelf));
-        Mockito.when(bookService.findById(book.getId())).thenReturn(Optional.of(book));
+        Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.of(shelf));
+        Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
 
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/libraries/{id}/addBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.patch("/api/libraries/{id}/addBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"book\":\"Book " + book.getTitle() + " is already shelved in shelf " + book.getShelf().getName() + "\"}"));
+                .andExpect(status().isBadRequest())
+        		.andExpect(jsonPath("messages.book", is("Book " + book.getTitle() + " is already shelved in shelf " + book.getShelf().getName())));
     }
 
     @Test
     public void addBookSuccess() throws Exception {
-        Mockito.when(shelfService.findById(shelf.getId())).thenReturn(Optional.of(shelf));
-        Mockito.when(bookService.findById(book.getId())).thenReturn(Optional.of(book));
+    	shelf.setBooks(Collections.singletonList(book));
+    	
+        Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.of(shelf2));
+        Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
+        Mockito.when(shelfService.addBook(Mockito.any(Shelf.class), Mockito.any(Book.class)))
+        	.thenReturn(shelf);
+        Mockito.when(assembler.toResource(Mockito.any(Shelf.class))).thenCallRealMethod();
 
-        shelf2.setBooks(Collections.singletonList(book));
-        Mockito.when(shelfService.addBook(shelf, book)).thenReturn(shelf2);
-
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/libraries/{id}/addBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+        		.patch("/api/libraries/{id}/addBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
-        mockMvc.perform(request)
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string(equalTo(mapper.writeValueAsString(shelf2))));
-
-        assertTrue(shelf2.getBooks().contains(book));
-        assertEquals(1, shelf2.getBooks().size());
+        ResultActions result = mockMvc.perform(request).andDo(print()).andExpect(status().isOk());
+        
+        verifyJson(result);
     }
 
     @Test
     public void removeBookWhenShelfNotExists() throws Exception {
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete("/api/libraries/{id}/removeBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.patch("/api/libraries/{id}/removeBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"shelf\":\"There's no shelf found with id " + shelf.getId() + "\"}"));
+                .andExpect(status().isNotFound())
+        		.andExpect(jsonPath("messages.shelf", is("There's no shelf found with id " + shelf.getId())));
     }
 
     @Test
     public void removeBookWhenBookNotExists() throws Exception {
         Mockito.when(shelfService.findById(shelf.getId())).thenReturn(Optional.of(shelf));
 
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete("/api/libraries/{id}/removeBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.patch("/api/libraries/{id}/removeBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"book\":\"There's no book found with id " + book.getId() + "\"}"));
+                .andExpect(status().isNotFound())
+        		.andExpect(jsonPath("messages.book", is("There's no book found with id " + book.getId())));
     }
 
     @Test
@@ -252,35 +282,33 @@ public class LibraryControllerTest {
         Mockito.when(shelfService.findById(shelf.getId())).thenReturn(Optional.of(shelf));
         Mockito.when(bookService.findById(book.getId())).thenReturn(Optional.of(book));
 
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete("/api/libraries/{id}/removeBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.patch("/api/libraries/{id}/removeBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"shelf\":\"There's no book " + book.getTitle() + " in shelf " + shelf.getName() + "\"}"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("messages.shelf", is("There's no book " + book.getTitle() + " in shelf " + shelf.getName())));
     }
 
     @Test
     public void removeBookSuccess() throws Exception {
-        shelf.setBooks(Collections.singletonList(book));
+        shelf2.setBooks(Collections.singletonList(book));
 
-        Mockito.when(shelfService.findById(shelf.getId())).thenReturn(Optional.of(shelf));
-        Mockito.when(bookService.findById(book.getId())).thenReturn(Optional.of(book));
+        Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.of(shelf2));
+        Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
+        Mockito.when(shelfService.removeBook(Mockito.any(Shelf.class), Mockito.any(Book.class)))
+        	.thenReturn(shelf);
+        Mockito.when(assembler.toResource(Mockito.any(Shelf.class))).thenCallRealMethod();
 
-        Mockito.when(shelfService.removeBook(shelf, book)).thenReturn(shelf2);
-
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete("/api/libraries/{id}/removeBook", shelf.getId())
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+        		.patch("/api/libraries/{id}/removeBook", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(book));
 
-        mockMvc.perform(request)
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string(equalTo(mapper.writeValueAsString(shelf2))));
-
-        assertFalse(shelf2.getBooks().contains(book));
-        assertEquals(0, shelf2.getBooks().size());
+        ResultActions result = mockMvc.perform(request).andDo(print()).andExpect(status().isOk());
+        
+        verifyJson(result);
     }
 }

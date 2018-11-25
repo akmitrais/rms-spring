@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>RMS Spring</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        td, th {
+            border: 1px solid #999;
+            padding: 0.5rem;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resource Management System with Spring</h1>
+	<a href="/">Dashboard</a>
+    <p>
+        This is the book management page.
+    </p>
+
+    <table>
+        <tbody>
+	        <tr>
+	            <th>No.</th>
+	            <td></td>
+	        </tr>
+	        <tr>
+	            <th>ISBN</th>
+	        </tr>
+	        <tr>
+	            <th>Title</th>
+	        </tr>
+	        <tr>
+	            <th>Author</th>
+	        </tr>
+	        <tr>
+	            <th>Status</th>
+	        </tr>
+	        <tr>
+	            <th>Shelf Id</th>
+	        </tr>
+        </tbody>
+        <tbody>
+        	<tr th:if="${#lists.isEmpty(books.content)}">
+        		<td colspan="6">No data.</td>
+        	</tr>
+            <tr th:each="book : ${books}">
+                <td th:text="${bookStat.count}" />
+                <td th:text="${book.content.isbn}" />
+                <td th:text="${book.content.title}" />
+                <td th:text="${book.content.author}" />
+                <td th:text="${book.content.status}" />
+                <td>
+	                <a th:href="@{'/books/'+${book.content.id}}">View</a>
+	                <a th:href="@{'/books/'+${book.content.id}}+'/edit'">Edit</a>
+	                <a th:href="@{'/books/'+${book.content.id}}+'/delete'">Delete</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+	<br />
+	<hr />
+	<h3>Book Form</h3>
+    <form method="post" th:action="@{/books}" th:object="${book}">
+        <input type="text" th:field="*{isbn}" placeholder="ISBN" />
+        <input type="text" th:field="*{title}" placeholder="Title"/>
+        <input type="text" th:field="*{author}" placeholder="Author"/>
+        <input type="submit" value="Submit" />
+    </form>
+</body>
+</html>

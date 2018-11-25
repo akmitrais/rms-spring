@@ -25,6 +25,9 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Column(name = "id", insertable = false, updatable = false)
+    private Long bookId;
 
     @NotNull
     private String isbn;
@@ -43,6 +46,13 @@ public class Book {
         flags = Pattern.Flag.CASE_INSENSITIVE
     )
     private String status = NOT_SHELVED;
+    
+    /**
+     * Sets status field.
+     */
+    public void setStatus(String status) {
+    	this.status = status == null ? NOT_SHELVED : status.toLowerCase();
+    }
 
     @Column(name = "shelf_id", insertable = false, updatable = false)
     private Long shelfId;

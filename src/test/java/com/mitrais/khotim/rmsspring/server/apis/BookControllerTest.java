@@ -1,8 +1,17 @@
 package com.mitrais.khotim.rmsspring.server.apis;
 
-import com.mitrais.khotim.rmsspring.server.assemblers.BookResourceAssembler;
-import com.mitrais.khotim.rmsspring.server.domains.Book;
-import com.mitrais.khotim.rmsspring.server.services.BookService;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,22 +22,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mitrais.khotim.rmsspring.server.assemblers.BookResourceAssembler;
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.services.BookService;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(value = BookController.class, secure = false)
@@ -44,6 +48,7 @@ public class BookControllerTest {
 
     private Book book;
     private Book book2;
+    private ObjectMapper mapper;
 
     private static final String BASE_PATH = "http://localhost";
 
@@ -57,6 +62,8 @@ public class BookControllerTest {
 
         book2 = new Book("1234", "Space 2", "Khotim");
         book2.setId(2L);
+        
+        mapper = new ObjectMapper();
 
         linkToAll = BASE_PATH + linkTo(methodOn(BookController.class).getAll("", ""));
         linkToOne = BASE_PATH + linkTo(methodOn(BookController.class).getOne(book.getId()));
@@ -91,7 +98,7 @@ public class BookControllerTest {
     @Test
     public void getOneBookWhenExists() throws Exception {
         Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
-        Mockito.when(assembler.toResource(book)).thenCallRealMethod();
+        Mockito.when(assembler.toResource(Mockito.any(Book.class))).thenCallRealMethod();
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get("/api/books/{id}", book.getId());
         ResultActions result = mockMvc.perform(request).andDo(print()).andExpect(status().isOk());
@@ -104,5 +111,32 @@ public class BookControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/books/{id}", Mockito.anyLong()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void createNewBookReturnsCorrectResponse() throws Exception {
+    	Mockito.when(bookService.save(Mockito.any(Book.class))).thenReturn(book);
+    	Mockito.when(assembler.toResource(Mockito.any(Book.class))).thenCallRealMethod();
+    	
+    	MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/api/books")
+    			.contentType(MediaType.APPLICATION_JSON_VALUE)
+    			.content(mapper.writeValueAsString(book));
+    	
+    	final ResultActions result = mockMvc.perform(request)
+    			.andDo(print())
+    			.andExpect(status().isCreated());
+    	
+    	verifyJson(result);
+    }
+    
+    @Test
+    public void createNewBookReturnsValidationError() throws Exception {
+    	MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/api/books")
+    		  .contentType(MediaType.APPLICATION_JSON_VALUE)
+    		  .content(mapper.writeValueAsString(new Book()));
+      
+      mockMvc.perform(request)
+    		  .andDo(print())
+    		  .andExpect(status().isBadRequest());
     }
 }

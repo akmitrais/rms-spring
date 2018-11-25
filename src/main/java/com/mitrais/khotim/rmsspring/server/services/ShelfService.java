@@ -57,7 +57,7 @@ public class ShelfService {
         return shelfRepository.findAll();
     }
 
-    Shelf save(Shelf shelf) {
+    public Shelf save(Shelf shelf) {
         return shelfRepository.save(shelf);
     }
 }

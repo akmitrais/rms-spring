@@ -1,10 +1,14 @@
 package com.mitrais.khotim.rmsspring.server.apis;
 
-import com.mitrais.khotim.rmsspring.server.assemblers.BookResourceAssembler;
-import com.mitrais.khotim.rmsspring.server.domains.Book;
-import com.mitrais.khotim.rmsspring.server.exceptions.ErrorDetails;
-import com.mitrais.khotim.rmsspring.server.exceptions.ResourceNotFoundException;
-import com.mitrais.khotim.rmsspring.server.services.BookService;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
@@ -13,16 +17,21 @@ import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.WebRequest;
 
-import javax.validation.Valid;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import com.mitrais.khotim.rmsspring.server.assemblers.BookResourceAssembler;
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.exceptions.ErrorDetails;
+import com.mitrais.khotim.rmsspring.server.exceptions.ResourceNotFoundException;
+import com.mitrais.khotim.rmsspring.server.services.BookService;
+import com.mitrais.khotim.rmsspring.server.validations.ValidationMessage;
 
 @RestController
 @RequestMapping(value = "/api/books", produces = MediaTypes.HAL_JSON_VALUE)
@@ -56,10 +65,11 @@ public class BookController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> newBook(@RequestBody @Valid Book newBook, BindingResult errors) throws URISyntaxException {
+    public ResponseEntity<?> create(@RequestBody @Valid Book newBook, BindingResult errors, WebRequest request) throws URISyntaxException {
         if (errors.hasErrors()) {
-            return new ResponseEntity<>(ErrorDetails.getMessages(errors), HttpStatus.OK);
+        	return ResponseEntity
+        			.status(HttpStatus.BAD_REQUEST)
+        			.body(new ErrorDetails(ValidationMessage.getMessages(errors), request.getDescription(false)));
         }
 
         Resource<Book> resource = assembler.toResource(bookService.save(newBook));
