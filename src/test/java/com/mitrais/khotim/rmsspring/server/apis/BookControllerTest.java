@@ -139,4 +139,31 @@ public class BookControllerTest {
     		  .andDo(print())
     		  .andExpect(status().isBadRequest());
     }
+
+    @Test
+    public void updateExistingBookReturnsCorrectResponse() throws Exception {
+        Mockito.when(bookService.save(Mockito.any(Book.class))).thenReturn(book);
+        Mockito.when(assembler.toResource(Mockito.any(Book.class))).thenCallRealMethod();
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/books/{id}", book.getId())
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapper.writeValueAsString(book));
+
+        final ResultActions result = mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        verifyJson(result);
+    }
+
+    @Test
+    public void updateExistingBookReturnsValidationError() throws Exception {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/books/{id}", book.getId())
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapper.writeValueAsString(new Book()));
+
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
 }
