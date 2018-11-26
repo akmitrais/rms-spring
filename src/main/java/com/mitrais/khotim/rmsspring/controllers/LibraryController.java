@@ -1,6 +1,7 @@
 package com.mitrais.khotim.rmsspring.controllers;
 
 import com.mitrais.khotim.rmsspring.models.Shelf;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
@@ -9,6 +10,8 @@ import org.springframework.hateoas.mvc.TypeReferences.ResourcesType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestTemplate;
 
@@ -48,5 +51,22 @@ public class LibraryController {
 		model.addAttribute("shelf", new Shelf());
 
 		return "library/index";
+	}
+
+	/**
+	 * Creates a new shelf.
+	 *
+	 * @param shelf The shelf data.
+	 * @return View template.
+	 */
+	@PostMapping
+	public String create(@ModelAttribute Shelf shelf) {
+		Link shelfLink = apiCall
+				.follow("libraries")
+				.asLink();
+
+		this.rest.postForEntity(shelfLink.expand().getHref(), shelf, Shelf.class);
+
+		return "redirect:/libraries";
 	}
 }
