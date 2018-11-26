@@ -69,6 +69,7 @@ public class BookController {
 	}
 
 	/**
+	 * Updates and existing book.
 	 *
 	 * @param newBook The book data which contains updated values.
 	 * @param model   Holder for model attributes.

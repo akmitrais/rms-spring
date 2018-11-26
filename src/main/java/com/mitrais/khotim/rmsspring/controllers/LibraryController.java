@@ -9,12 +9,10 @@ import org.springframework.hateoas.client.Traverson;
 import org.springframework.hateoas.mvc.TypeReferences.ResourcesType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -68,5 +66,46 @@ public class LibraryController {
 		this.rest.postForEntity(shelfLink.expand().getHref(), shelf, Shelf.class);
 
 		return "redirect:/libraries";
+	}
+
+	/**
+	 *
+	 * @param newShelf The shelf data which contains updated values.
+	 * @param model   Holder for model attributes.
+	 * @param id      The shelf id.
+	 * @param request Provides information related to current request through the HttpServlet.
+	 * @return View template.
+	 */
+	@RequestMapping(value = "/{id}/update", method = {RequestMethod.GET, RequestMethod.POST})
+	public String update(
+			@ModelAttribute Shelf newShelf,
+			Model model,
+			@PathVariable final Long id,
+			HttpServletRequest request
+	) {
+		List<String> shelfLink = apiCall
+				.follow("libraries")
+				.toObject("$._embedded.shelfList[?(@.id==" + id + ")]._links.self.href");
+
+		if (request.getMethod().equals(RequestMethod.POST.toString())) {
+			this.rest.put(shelfLink.get(0), newShelf, Shelf.class);
+
+			return "redirect:/libraries";
+		}
+
+		Resources<Resource<Shelf>> resources = apiCall
+				.follow("libraries")
+				.toObject(new ResourcesType<Resource<Shelf>>(){});
+
+		List<Shelf> shelves = resources.getContent().stream()
+				.map(Resource::getContent)
+				.collect(Collectors.toList());
+
+		Shelf shelf = this.rest.getForObject(shelfLink.get(0), Shelf.class);
+
+		model.addAttribute("shelves", shelves);
+		model.addAttribute("shelf", shelf);
+
+		return "library/index";
 	}
 }
