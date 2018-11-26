@@ -33,47 +33,42 @@
     <h1>Resource Management System with Spring</h1>
 	<a href="/">Dashboard</a>
     <p>
-        This is the book management page.
+        This is the library management page.
     </p>
 
     <table>
         <thead>
-	        <tr>
-	            <th>No.</th>
-	            <th>ISBN</th>
-	            <th>Title</th>
-	            <th>Author</th>
-	            <th>Status</th>
-	            <th>Shelf</th>
-	            <th>Actions</th>
-	        </tr>
+            <tr>
+                <th>No.</th>
+                <th>Name</th>
+                <th>Max Capacity</th>
+                <th>Current Capacity</th>
+                <th>Actions</th>
+            </tr>
         </thead>
         <tbody>
-        	<tr th:if="${#lists.isEmpty(books)}">
-        		<td colspan="7">No data.</td>
-        	</tr>
-            <tr th:each="book : ${books}">
-                <td th:text="${bookStat.count}">1</td>
-                <td th:text="${book.isbn}">1234</td>
-                <td th:text="${book.title}"></td>
-                <td th:text="${book.author}"></td>
-                <td th:text="${book.status}"></td>
-                <td th:text="${book.shelf}"></td>
+            <tr th:if="${#lists.isEmpty(shelves)}">
+                <td colspan="5">No data.</td>
+            </tr>
+            <tr th:each="shelf : ${shelves}">
+                <td th:text="${shelfStat.count}">1</td>
+                <td th:text="${shelf.name}">1234</td>
+                <td th:text="${shelf.maxCapacity}"></td>
+                <td th:text="${shelf.currentCapacity}"></td>
                 <td>
-	                <a th:href="@{'/books/'+${book.id}}+'/update'">Update</a>
-	                <button class="link-button" th:data-url="@{'/books/'+${book.id}}+'/delete'" th:data-id="${book.id}" onclick="deleteBook(this);">Delete</button>
+                    <a th:href="@{'/libraries/'+${shelf.id}}+'/update'">Update</a>
+                    <button class="link-button" th:data-url="@{'/libraries/'+${shelf.id}}+'/delete'" th:data-id="${shelf.id}" onclick="deleteBook(this);">Delete</button>
                 </td>
             </tr>
         </tbody>
     </table>
-	<br />
-    <a th:href="@{'/books'}">Refresh</a>
+    <br />
+    <a th:href="@{'/libraries'}">Refresh</a>
 	<hr />
-	<h3>Book Form</h3>
-    <form method="post" th:object="${book}">
-        <input type="text" th:field="*{isbn}" th:value="*{isbn}" placeholder="ISBN" />
-        <input type="text" th:field="*{title}" th:value="*{title}" placeholder="Title"/>
-        <input type="text" th:field="*{author}" th:value="*{author}" placeholder="Author"/>
+	<h3>Library Form</h3>
+    <form method="post" th:object="${shelf}">
+        <input type="text" th:field="*{name}" th:value="*{name}" placeholder="Name" />
+        <input type="text" th:field="*{maxCapacity}" th:value="*{maxCapacity}" placeholder="Max Capacity"/>
         <input type="submit" value="Submit" />
     </form>
 

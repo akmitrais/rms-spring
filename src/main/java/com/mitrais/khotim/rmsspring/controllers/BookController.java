@@ -16,18 +16,17 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Controller(value = "bookController-client")
 @RequestMapping("/books")
 public class BookController {
-
 	private static final String REMOTE_SERVICE_ROOT_URI = "http://localhost:8080/api/";
+	private Traverson apiCall = new Traverson(new URI(REMOTE_SERVICE_ROOT_URI), MediaTypes.HAL_JSON);
 
 	private final RestTemplate rest;
 
-	public BookController(RestTemplate restTemplate) {
+	public BookController(RestTemplate restTemplate) throws URISyntaxException {
 		this.rest = restTemplate;
 	}
 	
@@ -36,12 +35,10 @@ public class BookController {
 	 *
 	 * @param model Holder for model attributes.
 	 * @return View template.
-	 * @throws URISyntaxException Exception when string couldn't be passed as URI reference.
 	 */
 	@GetMapping
-	public String index(Model model) throws URISyntaxException {
-		Traverson client = new Traverson(new URI(REMOTE_SERVICE_ROOT_URI), MediaTypes.HAL_JSON);
-		Resources<Resource<Book>> resources = client
+	public String index(Model model) {
+		Resources<Resource<Book>> resources = apiCall
 			.follow("books")
 			.toObject(new ResourcesType<Resource<Book>>(){});
 
@@ -59,12 +56,10 @@ public class BookController {
 	 *
 	 * @param book The book data.
 	 * @return View template.
-	 * @throws URISyntaxException Exception when string couldn't be passed as URI reference.
 	 */
 	@PostMapping
-	public String create(@ModelAttribute Book book) throws URISyntaxException {
-		Traverson client = new Traverson(new URI(REMOTE_SERVICE_ROOT_URI), MediaTypes.HAL_JSON);
-		Link booksLink = client
+	public String create(@ModelAttribute Book book) {
+		Link booksLink = apiCall
 			.follow("books")
 			.asLink();
 
@@ -72,24 +67,23 @@ public class BookController {
 
 		return "redirect:/books";
 	}
-	
+
 	/**
-	 * Updates an existing book.
 	 *
-	 * @param newBook The book data.
+	 * @param newBook The book data which contains updated values.
+	 * @param model   Holder for model attributes.
+	 * @param id      The book id.
+	 * @param request Provides information related to current request through the HttpServlet.
 	 * @return View template.
-	 * @throws URISyntaxException Exception when string couldn't be passed as URI reference.
 	 */
 	@RequestMapping(value = "/{id}/update", method = {RequestMethod.GET, RequestMethod.POST})
 	public String update(@ModelAttribute Book newBook,
 			Model model,
 			@PathVariable final Long id,
-			HttpServletRequest request) throws URISyntaxException
+			HttpServletRequest request)
 	{
-		Traverson client = new Traverson(new URI(REMOTE_SERVICE_ROOT_URI), MediaTypes.HAL_JSON);
-
 		if (request.getMethod().equals(RequestMethod.POST.toString())) {
-			List<String> booksLink = client
+			List<String> booksLink = apiCall
 					.follow("books")
 					.toObject("$._embedded.bookList[?(@.id==" + id + ")]._links.self.href");
 
@@ -98,7 +92,7 @@ public class BookController {
 			return "redirect:/books";
 		}
 		
-		Resources<Resource<Book>> resources = client
+		Resources<Resource<Book>> resources = apiCall
 				.follow("books")
 				.toObject(new ResourcesType<Resource<Book>>(){});
 
@@ -116,8 +110,24 @@ public class BookController {
 
 		model.addAttribute("books", books);
 		model.addAttribute("book", book);
-		System.out.println(book);
 		
 		return "book/index";
+	}
+
+	/**
+	 * Deletes an existing book.
+	 *
+	 * @param id The book id.
+	 * @return Redirect to book list.
+	 */
+	@PostMapping("/{id}/delete")
+	public String delete(@PathVariable final Long id) {
+		List<String> booksLink = apiCall
+				.follow("books")
+				.toObject("$._embedded.bookList[?(@.id==" + id + ")]._links.self.href");
+
+		this.rest.delete(booksLink.get(0));
+
+		return "redirect:/books";
 	}
 }
