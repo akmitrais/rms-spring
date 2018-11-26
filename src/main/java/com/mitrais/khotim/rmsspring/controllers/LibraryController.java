@@ -108,4 +108,21 @@ public class LibraryController {
 
 		return "library/index";
 	}
+
+	/**
+	 * Deletes an existing shelf.
+	 *
+	 * @param id The shelf id.
+	 * @return Redirect to book list.
+	 */
+	@PostMapping("/{id}/delete")
+	public String delete(@PathVariable final Long id) {
+		List<String> shelfLink = apiCall
+				.follow("libraries")
+				.toObject("$._embedded.shelfList[?(@.id==" + id + ")]._links.self.href");
+
+		this.rest.delete(shelfLink.get(0));
+
+		return "redirect:/libraries";
+	}
 }

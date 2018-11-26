@@ -60,4 +60,10 @@ public class ShelfService {
     public Shelf save(Shelf shelf) {
         return shelfRepository.save(shelf);
     }
+
+    public boolean deleteById(Long id) {
+        shelfRepository.deleteById(id);
+
+        return true;
+    }
 }

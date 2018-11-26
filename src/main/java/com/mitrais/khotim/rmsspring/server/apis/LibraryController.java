@@ -100,6 +100,16 @@ public class LibraryController {
         return ResponseEntity.ok(resource);
     }
 
+    @DeleteMapping("/{id}")
+    ResponseEntity<?> delete(@PathVariable Long id) {
+        Shelf shelf = shelfService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cannot find shelf with id " + id));
+
+        return shelfService.deleteById(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.badRequest().body("Cannot proceed your request on this resource.");
+    }
+
     @PatchMapping("/{id}/addBook")
     public ResponseEntity<?> addBook(@PathVariable final long id, @RequestBody Book pBook, WebRequest request) {
         return doOperation(id, pBook, "add", request);
