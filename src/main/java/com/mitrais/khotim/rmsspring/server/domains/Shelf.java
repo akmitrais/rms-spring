@@ -24,6 +24,9 @@ public class Shelf {
     @Column(name = "shelf_id")
     private Long id;
 
+    @Column(name = "shelf_id", insertable = false, updatable = false)
+    private Long shelfId;
+
     @NotNull
     private String name;
 

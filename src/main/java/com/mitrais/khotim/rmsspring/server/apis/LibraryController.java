@@ -19,13 +19,7 @@ import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 
 import com.mitrais.khotim.rmsspring.server.assemblers.ShelfResourceAssembler;
@@ -79,6 +73,31 @@ public class LibraryController {
         Resource<Shelf> resource = assembler.toResource(shelfService.save(newShelf));
 
         return ResponseEntity.created(new URI(resource.getId().expand().getHref())).body(resource);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable final Long id, @RequestBody @Valid Shelf newShelf, BindingResult errors, WebRequest request) {
+        if (errors.hasErrors()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorDetails(ValidationMessage.getMessages(errors), request.getDescription(false)));
+        }
+
+        Shelf updatedShelf= shelfService.findById(id)
+                .map(shelf -> {
+                    shelf.setName(newShelf.getName());
+                    shelf.setMaxCapacity(newShelf.getMaxCapacity());
+
+                    return shelfService.save(shelf);
+                })
+                .orElseGet(() -> {
+                    newShelf.setId(id);
+                    return shelfService.save(newShelf);
+                });
+
+        Resource<Shelf> resource = assembler.toResource(updatedShelf);
+
+        return ResponseEntity.ok(resource);
     }
 
     @PatchMapping("/{id}/addBook")
