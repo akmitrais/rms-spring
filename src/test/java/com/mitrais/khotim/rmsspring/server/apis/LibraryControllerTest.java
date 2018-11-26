@@ -153,6 +153,52 @@ public class LibraryControllerTest {
     }
 
     @Test
+    public void updateExistingShelfReturnsCorrectResponse() throws Exception {
+        Mockito.when(shelfService.save(Mockito.any(Shelf.class))).thenReturn(shelf);
+        Mockito.when(assembler.toResource(Mockito.any(Shelf.class))).thenCallRealMethod();
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/libraries/{id}", shelf.getId())
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapper.writeValueAsString(shelf));
+
+        final ResultActions result = mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        verifyJson(result);
+    }
+
+    @Test
+    public void updateExistingShelfReturnsValidationError() throws Exception {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/libraries/{id}", shelf.getId())
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapper.writeValueAsString(new Shelf()));
+
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void deleteExistingShelfReturnsNothing() throws Exception {
+        Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.of(shelf));
+        Mockito.when(shelfService.deleteById(Mockito.anyLong())).thenReturn(true);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/libraries/{id}", shelf.getId()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void deleteNonExistenceShelfReturnsError() throws Exception {
+        Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.empty());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/libraries/{id}", shelf.getId()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     public void addBookWhenShelfNotExists() throws Exception {
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
         		.patch("/api/libraries/{id}/addBook", shelf.getId())

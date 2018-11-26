@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
@@ -89,5 +90,10 @@ public class ShelfServiceTest {
         assertNotNull(testShelf.getName());
         assertEquals("Shelf 1", testShelf.getName());
         assertEquals(newShelf.getMaxCapacity(), testShelf.getMaxCapacity());
+    }
+
+    @Test
+    public void delete() {
+        assertTrue(shelfService.deleteById(Mockito.anyLong()));
     }
 }
