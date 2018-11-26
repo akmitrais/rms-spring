@@ -82,11 +82,11 @@ public class BookController {
 			@PathVariable final Long id,
 			HttpServletRequest request)
 	{
-		if (request.getMethod().equals(RequestMethod.POST.toString())) {
-			List<String> booksLink = apiCall
-					.follow("books")
-					.toObject("$._embedded.bookList[?(@.id==" + id + ")]._links.self.href");
+		List<String> booksLink = apiCall
+				.follow("books")
+				.toObject("$._embedded.bookList[?(@.id==" + id + ")]._links.self.href");
 
+		if (request.getMethod().equals(RequestMethod.POST.toString())) {
 			this.rest.put(booksLink.get(0), newBook, Book.class);
 
 			return "redirect:/books";
@@ -100,13 +100,7 @@ public class BookController {
 				.map(Resource::getContent)
 				.collect(Collectors.toList());
 
-		Book book = new Book();
-		for (Book b: books) {
-			if (b.getId().equals(id)) {
-				book = b;
-				break;
-			}
-		}
+		Book book = this.rest.getForObject(booksLink.get(0), Book.class);
 
 		model.addAttribute("books", books);
 		model.addAttribute("book", book);
