@@ -41,4 +41,10 @@ public class BookService {
     public Book save(Book newBook) {
         return repository.save(newBook);
     }
+
+    public boolean deleteById(Long id) {
+        repository.deleteById(id);
+
+        return true;
+    }
 }

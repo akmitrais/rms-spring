@@ -166,4 +166,23 @@ public class BookControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    public void deleteExistingBookReturnsNothing() throws Exception {
+        Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
+        Mockito.when(bookService.deleteById(Mockito.anyLong())).thenReturn(true);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/books/{id}", book.getId()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void deleteNonExistenceBookReturnsError() throws Exception {
+        Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.empty());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/books/{id}", book.getId()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
 }

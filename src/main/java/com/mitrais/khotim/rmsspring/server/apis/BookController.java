@@ -96,4 +96,14 @@ public class BookController {
 
         return ResponseEntity.ok(resource);
     }
+
+    @DeleteMapping("/{id}")
+    ResponseEntity<?> delete(@PathVariable Long id) {
+        Book book = bookService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cannot find book with id " + id));
+
+        return bookService.deleteById(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.badRequest().body("Cannot proceed your request on this resource.");
+    }
 }

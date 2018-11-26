@@ -8,14 +8,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -85,5 +85,10 @@ public class BookServiceTest {
         assertNotNull(testBook.getAuthor());
         assertEquals("Space Adventure 1", testBook.getTitle());
         assertEquals(newBook.getShelf(), testBook.getShelf());
+    }
+
+    @Test
+    public void delete() {
+        assertTrue(bookService.deleteById(Mockito.anyLong()));
     }
 }
