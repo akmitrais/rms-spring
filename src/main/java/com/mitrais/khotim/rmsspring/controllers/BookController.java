@@ -1,12 +1,11 @@
 package com.mitrais.khotim.rmsspring.controllers;
 
 import com.mitrais.khotim.rmsspring.models.Book;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.MediaTypes;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
+import org.springframework.hateoas.*;
 import org.springframework.hateoas.client.Traverson;
+import org.springframework.hateoas.core.JsonPathLinkDiscoverer;
 import org.springframework.hateoas.mvc.TypeReferences.ResourcesType;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +14,8 @@ import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,12 +23,13 @@ import java.util.stream.Collectors;
 @RequestMapping("/books")
 public class BookController {
 	private static final String REMOTE_SERVICE_ROOT_URI = "http://localhost:8080/api/";
-	private Traverson apiCall = new Traverson(new URI(REMOTE_SERVICE_ROOT_URI), MediaTypes.HAL_JSON);
+	private Traverson apiCall;
 
 	private final RestTemplate rest;
 
 	public BookController(RestTemplate restTemplate) throws URISyntaxException {
 		this.rest = restTemplate;
+		apiCall = new Traverson(new URI(REMOTE_SERVICE_ROOT_URI), MediaTypes.HAL_JSON);
 	}
 	
 	/**
@@ -36,15 +38,15 @@ public class BookController {
 	 * @param model Holder for model attributes.
 	 * @return View template.
 	 */
-	@GetMapping
+	@GetMapping()
 	public String index(Model model) {
 		Resources<Resource<Book>> resources = apiCall
-			.follow("books")
-			.toObject(new ResourcesType<Resource<Book>>(){});
+				.follow("books")
+				.toObject(new ResourcesType<Resource<Book>>(){});
 
 		List<Book> books = resources.getContent().stream()
 				.map(Resource::getContent).collect(Collectors.toList());
-		
+
 		model.addAttribute("books", books);
 		model.addAttribute("book", new Book());
 

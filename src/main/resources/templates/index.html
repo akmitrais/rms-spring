@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8" />
     <title>RMS Spring</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <h1>Resource Management System with Spring</h1>
@@ -11,6 +12,14 @@
    	<ul>
    		<li><a href="/libraries">Library</a></li>
    		<li><a href="/books">Book</a></li>
+   		<li sec:authorize="isAnonymous()">
+            <a th:href="@{/login}">Log in</a>
+        </li>
+        <li sec:authorize="isAuthenticated()">
+            <form th:action="@{/logout}" method="post">
+                <input class="link-button" type="submit" value="Log Out" style="padding-left: 0px;"/>
+            </form>
+        </li>
    	</ul>
 </body>
 </html>

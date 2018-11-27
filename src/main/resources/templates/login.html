@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>RMS Spring</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <h1>Resource Management System with Spring</h1>
+
+    <p>Please login.</p>
+    <div th:if="${param.error}">
+        Invalid username and password.
+    </div>
+    <div th:if="${param.logout}">
+        You have been logged out.
+    </div>
+    <form th:action="@{/login}" method="post">
+        <div class="form-input">
+            <label> User Name : </label><input type="text" name="username" autofocus/>
+        </div>
+        <div class="form-input">
+            <label> Password: </label><input type="password" name="password"/>
+        </div>
+        <div class="form-input">
+            <input type="submit" value="Sign In"/>
+        </div>
+    </form>
+</body>
+</html>
