@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +27,7 @@ public class Shelf {
     @Column(name = "shelf_id", insertable = false, updatable = false)
     private Long shelfId;
 
-    @NotNull
+    @NotBlank
     private String name;
 
     @Min(value = 0)
@@ -41,7 +41,7 @@ public class Shelf {
     @OneToMany(mappedBy = "shelf", cascade = CascadeType.ALL)
     private List<Book> books = new ArrayList<>();
 
-    public Shelf(@NotNull String name, @Min(value = 0) int maxCapacity) {
+    public Shelf(@NotBlank String name, @Min(value = 0) int maxCapacity) {
         this.name = name;
         this.maxCapacity = maxCapacity;
     }

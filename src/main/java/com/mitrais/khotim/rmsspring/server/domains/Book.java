@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
 @Data
@@ -29,13 +29,13 @@ public class Book {
     @Column(name = "id", insertable = false, updatable = false)
     private Long bookId;
 
-    @NotNull
+    @NotBlank
     private String isbn;
 
-    @NotNull
+    @NotBlank
     private String title;
 
-    @NotNull
+    @NotBlank
     private String author;
 
     public static final String SHELVED = "shelved";
@@ -75,7 +75,7 @@ public class Book {
     @JsonIgnore
     private Shelf shelf;
 
-    public Book(@NotNull String isbn, @NotNull String title, @NotNull String author) {
+    public Book(@NotBlank String isbn, @NotBlank String title, @NotBlank String author) {
         this.isbn = isbn;
         this.title = title;
         this.author = author;
