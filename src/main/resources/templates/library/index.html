@@ -42,7 +42,7 @@
     <a th:href="@{'/libraries'}">Refresh</a>
 	<hr />
 	<h3>Library Form</h3>
-    <form method="post" th:object="${shelf}">
+    <form method="post" th:action="@{''}" th:object="${shelf}">
         <input type="text" th:field="*{name}" th:value="*{name}" placeholder="Name" />
         <input type="text" th:field="*{maxCapacity}" th:value="*{maxCapacity}" placeholder="Max Capacity"/>
         <input type="submit" value="Submit" />

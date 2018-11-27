@@ -46,7 +46,7 @@
     <a th:href="@{'/books'}">Refresh</a>
 	<hr />
 	<h3>Book Form</h3>
-    <form method="post" th:object="${book}">
+    <form method="post" th:action="@{''}" th:object="${book}">
         <input type="text" th:field="*{isbn}" th:value="*{isbn}" placeholder="ISBN" />
         <input type="text" th:field="*{title}" th:value="*{title}" placeholder="Title"/>
         <input type="text" th:field="*{author}" th:value="*{author}" placeholder="Author"/>
