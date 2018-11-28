@@ -1,15 +1,19 @@
 package com.mitrais.khotim.rmsspring.server.services;
 
+import com.mitrais.khotim.rmsspring.server.apis.BookController;
 import com.mitrais.khotim.rmsspring.server.assemblers.BookResourceAssembler;
 import com.mitrais.khotim.rmsspring.server.domains.Book;
 import com.mitrais.khotim.rmsspring.server.domains.BookResource;
 import com.mitrais.khotim.rmsspring.server.repositories.BookRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Resources;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @Service
 public class BookService {
@@ -34,8 +38,8 @@ public class BookService {
         } else {
         	books = repository.findByTitleContainingIgnoreCaseAndStatusIgnoreCase(title, status);
         }
-        
-		return assembler.toResources(books);
+
+    	return assembler.toResources(books);
     }
 
     public BookResource toResource(Book book) {

@@ -1,18 +1,10 @@
 package com.mitrais.khotim.rmsspring.server.apis;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mitrais.khotim.rmsspring.server.assemblers.BookResourceAssembler;
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.domains.BookResource;
+import com.mitrais.khotim.rmsspring.server.services.BookService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.ResourceAssembler;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -29,10 +22,15 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mitrais.khotim.rmsspring.server.domains.Book;
-import com.mitrais.khotim.rmsspring.server.domains.BookResource;
-import com.mitrais.khotim.rmsspring.server.services.BookService;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.hamcrest.Matchers.*;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(value = BookController.class, secure = false)
@@ -55,17 +53,17 @@ public class BookControllerTest {
 
     @Before
     public void setUp() {
+        BookResourceAssembler assembler = new BookResourceAssembler();
+
         book = new Book("1234", "Space 2", "Khotim");
         book.setId(2L);
-        
-        bookR2 = new BookResource(book);
-        
+
+        bookR2 = assembler.toResource(book);
+
+        book = new Book("9876", "Space 1", "Khotim");
         book.setId(1L);
-        book.setIsbn("9876");
-        book.setTitle("Space 1");
-        book.setAuthor("Khotim");
-        
-        bookR = new BookResource(book);
+
+        bookR = assembler.toResource(book);
         
         mapper = new ObjectMapper();
 
@@ -80,18 +78,17 @@ public class BookControllerTest {
                 .andExpect(jsonPath("isbn", is(book.getIsbn())))
                 .andExpect(jsonPath("title", is(book.getTitle())))
                 .andExpect(jsonPath("author", is(book.getAuthor())))
-                .andExpect(jsonPath("_links.self.href", is(linkToOne)))
-                .andExpect(jsonPath("_links.books.href", is(linkToAll)));
+                .andExpect(jsonPath("_links.self.href", is(not(empty()))));
     }
 
     @Test
     public void getAllReturnsCorrectResponse() throws Exception {
         List<BookResource> books = Arrays.asList(bookR, bookR2);
 
-        Mockito.when(bookService.findByTitleAndStatus(Mockito.anyString(), Mockito.anyString())).thenReturn(books);
+        Mockito.when(bookService.findByTitleAndStatus(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(books);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/books"))
-                .andDo(print())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE + ";charset=UTF-8"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_links.self.href", is(linkToAll)))
@@ -104,7 +101,7 @@ public class BookControllerTest {
         Mockito.when(bookService.toResource(Mockito.any(Book.class))).thenReturn(bookR);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get("/api/books/{id}", book.getId());
-        ResultActions result = mockMvc.perform(request).andDo(print()).andExpect(status().isOk());
+        ResultActions result = mockMvc.perform(request).andExpect(status().isOk());
 
         verifyJson(result);
     }
@@ -112,7 +109,6 @@ public class BookControllerTest {
     @Test
     public void getOneBookWhenNotExists() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/books/{id}", Mockito.anyLong()))
-                .andDo(print())
                 .andExpect(status().isNotFound());
     }
     
@@ -125,7 +121,6 @@ public class BookControllerTest {
     			.content(mapper.writeValueAsString(book));
     	
     	final ResultActions result = mockMvc.perform(request)
-    			.andDo(print())
     			.andExpect(status().isCreated());
     	
     	verifyJson(result);
@@ -138,7 +133,6 @@ public class BookControllerTest {
     		  .content(mapper.writeValueAsString(new Book()));
       
       mockMvc.perform(request)
-    		  .andDo(print())
     		  .andExpect(status().isBadRequest());
     }
 
@@ -151,7 +145,6 @@ public class BookControllerTest {
                 .content(mapper.writeValueAsString(book));
 
         final ResultActions result = mockMvc.perform(request)
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verifyJson(result);
@@ -164,7 +157,6 @@ public class BookControllerTest {
                 .content(mapper.writeValueAsString(new Book()));
 
         mockMvc.perform(request)
-                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -174,7 +166,6 @@ public class BookControllerTest {
         Mockito.when(bookService.deleteById(Mockito.anyLong())).thenReturn(true);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/books/{id}", book.getId()))
-                .andDo(print())
                 .andExpect(status().isNoContent());
     }
 
@@ -183,7 +174,6 @@ public class BookControllerTest {
         Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.empty());
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/books/{id}", book.getId()))
-                .andDo(print())
                 .andExpect(status().isNotFound());
     }
 }

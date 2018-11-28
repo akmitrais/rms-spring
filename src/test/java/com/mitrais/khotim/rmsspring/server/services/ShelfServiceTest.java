@@ -2,6 +2,7 @@ package com.mitrais.khotim.rmsspring.server.services;
 
 import com.mitrais.khotim.rmsspring.server.domains.Book;
 import com.mitrais.khotim.rmsspring.server.domains.Shelf;
+import com.mitrais.khotim.rmsspring.server.domains.ShelfResource;
 import com.mitrais.khotim.rmsspring.server.repositories.ShelfRepository;
 import com.mitrais.khotim.rmsspring.server.services.ShelfService;
 
@@ -39,7 +40,7 @@ public class ShelfServiceTest {
 
         when(shelfRepository.save(newShelf)).thenReturn(newShelf);
 
-        Shelf testShelf = shelfService.addBook(newShelf, newBook);
+        ShelfResource testShelf = shelfService.addBook(newShelf, newBook);
 
         assertEquals(1, testShelf.getCurrentCapacity());
         assertNotNull(testShelf.getBooks());
@@ -55,7 +56,7 @@ public class ShelfServiceTest {
         newShelf.setCurrentCapacity(1);
         when(shelfRepository.save(newShelf)).thenReturn(newShelf);
 
-        Shelf testShelf = shelfService.removeBook(newShelf, newBook);
+        ShelfResource testShelf = shelfService.removeBook(newShelf, newBook);
 
         assertEquals(0, testShelf.getCurrentCapacity());
         assertTrue(testShelf.getBooks().isEmpty());
@@ -85,7 +86,7 @@ public class ShelfServiceTest {
 
         when(shelfRepository.save(newShelf)).thenReturn(newShelf);
 
-        Shelf testShelf = shelfService.save(newShelf);
+        ShelfResource testShelf = shelfService.save(newShelf);
 
         assertNotNull(testShelf.getName());
         assertEquals("Shelf 1", testShelf.getName());

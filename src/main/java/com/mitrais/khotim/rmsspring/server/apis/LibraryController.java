@@ -1,55 +1,48 @@
 package com.mitrais.khotim.rmsspring.server.apis;
 
-import java.net.URISyntaxException;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import javax.validation.Valid;
-
+import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.domains.Shelf;
+import com.mitrais.khotim.rmsspring.server.domains.ShelfResource;
+import com.mitrais.khotim.rmsspring.server.exceptions.ErrorDetails;
+import com.mitrais.khotim.rmsspring.server.exceptions.ResourceNotFoundException;
+import com.mitrais.khotim.rmsspring.server.services.BookService;
+import com.mitrais.khotim.rmsspring.server.services.ShelfService;
+import com.mitrais.khotim.rmsspring.server.validations.ValidationMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 
-import com.mitrais.khotim.rmsspring.server.assemblers.ShelfResourceAssembler;
-import com.mitrais.khotim.rmsspring.server.domains.Book;
-import com.mitrais.khotim.rmsspring.server.domains.Shelf;
-import com.mitrais.khotim.rmsspring.server.domains.ShelfJSON;
-import com.mitrais.khotim.rmsspring.server.exceptions.ErrorDetails;
-import com.mitrais.khotim.rmsspring.server.exceptions.ResourceNotFoundException;
-import com.mitrais.khotim.rmsspring.server.services.BookService;
-import com.mitrais.khotim.rmsspring.server.services.ShelfService;
-import com.mitrais.khotim.rmsspring.server.validations.ValidationMessage;
+import javax.validation.Valid;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping(value = "/api/libraries", produces = MediaTypes.HAL_JSON_VALUE)
 public class LibraryController {
     private final ShelfService shelfService;
     private final BookService bookService;
-    private final ShelfResourceAssembler assembler;
 
     @Autowired
-    public LibraryController(ShelfService shelfService, BookService bookService, ShelfResourceAssembler assembler) {
+    public LibraryController(ShelfService shelfService, BookService bookService) {
         this.shelfService = shelfService;
         this.bookService = bookService;
-        this.assembler = assembler;
     }
 
     @GetMapping
     public ResponseEntity<?> getAll() {
-        List<ShelfJSON> shelves = StreamSupport.stream(shelfService.findAll().spliterator(), false)
-			.map(ShelfJSON::new)
-			.collect(Collectors.toList());
-		
-        return ResponseEntity.ok(assembler.toResources(shelves));
+        return ResponseEntity.ok(new Resources<>(
+                shelfService.findAll(),
+                linkTo(methodOn(LibraryController.class).getAll()).withSelfRel()));
     }
 
     @GetMapping("/{id}")
@@ -57,7 +50,7 @@ public class LibraryController {
         Shelf shelf = shelfService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cannot find shelf with id " + id));
 
-        return ResponseEntity.ok(assembler.toResource(new ShelfJSON(shelf)));
+        return ResponseEntity.ok(shelfService.toResource(shelf));
     }
     
     @PostMapping
@@ -68,7 +61,7 @@ public class LibraryController {
         			.body(new ErrorDetails(ValidationMessage.getMessages(errors), request.getDescription(false)));
         }
 
-        Resource<ShelfJSON> resource = assembler.toResource(new ShelfJSON(shelfService.save(newShelf)));
+        ShelfResource resource = shelfService.save(newShelf);
 
         return ResponseEntity.created(new URI(resource.getId().expand().getHref())).body(resource);
     }
@@ -81,7 +74,7 @@ public class LibraryController {
                     .body(new ErrorDetails(ValidationMessage.getMessages(errors), request.getDescription(false)));
         }
 
-        Shelf updatedShelf= shelfService.findById(id)
+        ShelfResource updatedShelf = shelfService.findById(id)
                 .map(shelf -> {
                     shelf.setName(newShelf.getName());
                     shelf.setMaxCapacity(newShelf.getMaxCapacity());
@@ -93,9 +86,7 @@ public class LibraryController {
                     return shelfService.save(newShelf);
                 });
 
-        Resource<ShelfJSON> resource = assembler.toResource(new ShelfJSON(updatedShelf));
-
-        return ResponseEntity.ok(resource);
+        return ResponseEntity.ok(updatedShelf);
     }
 
     @DeleteMapping("/{id}")
@@ -145,7 +136,7 @@ public class LibraryController {
                     break;
                 }
 
-                responseBody = assembler.toResource(new ShelfJSON(shelfService.removeBook(shelf, book)));
+                responseBody = shelfService.removeBook(shelf, book);
                 httpStatus = HttpStatus.OK;
                 break;
             }
@@ -165,7 +156,7 @@ public class LibraryController {
                 break;
             }
             
-            responseBody = assembler.toResource(new ShelfJSON(shelfService.addBook(shelf, book)));
+            responseBody = shelfService.addBook(shelf, book);
             httpStatus = HttpStatus.OK;
         } while (false);
         

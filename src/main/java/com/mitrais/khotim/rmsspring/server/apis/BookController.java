@@ -2,10 +2,12 @@ package com.mitrais.khotim.rmsspring.server.apis;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -18,6 +20,9 @@ import com.mitrais.khotim.rmsspring.server.exceptions.ErrorDetails;
 import com.mitrais.khotim.rmsspring.server.exceptions.ResourceNotFoundException;
 import com.mitrais.khotim.rmsspring.server.services.BookService;
 import com.mitrais.khotim.rmsspring.server.validations.ValidationMessage;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping(value = "/api/books", produces = MediaTypes.HAL_JSON_VALUE)
@@ -34,7 +39,9 @@ public class BookController {
             @RequestParam(required = false, defaultValue = "") String title,
             @RequestParam(required = false, defaultValue = "") String status
     ) {
-    	return ResponseEntity.ok(bookService.findByTitleAndStatus(title, status));
+        return ResponseEntity.ok(new Resources<>(
+                bookService.findByTitleAndStatus(title, status),
+                linkTo(methodOn(BookController.class).getAll(title, status)).withSelfRel()));
     }
 
     @GetMapping("/{id}")
@@ -78,9 +85,7 @@ public class BookController {
                     return bookService.save(newBook);
                 });
 
-        BookResource resource = updatedBook;
-
-        return ResponseEntity.ok(resource);
+        return ResponseEntity.ok(updatedBook);
     }
 
     @DeleteMapping("/{id}")

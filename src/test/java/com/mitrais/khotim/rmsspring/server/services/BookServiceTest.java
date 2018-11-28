@@ -1,10 +1,10 @@
 package com.mitrais.khotim.rmsspring.server.services;
 
+import com.mitrais.khotim.rmsspring.server.assemblers.BookResourceAssembler;
 import com.mitrais.khotim.rmsspring.server.domains.Book;
 import com.mitrais.khotim.rmsspring.server.domains.BookResource;
 import com.mitrais.khotim.rmsspring.server.repositories.BookRepository;
-import com.mitrais.khotim.rmsspring.server.services.BookService;
-
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -14,6 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
@@ -24,43 +25,75 @@ public class BookServiceTest {
     @Mock
     BookRepository bookRepository;
 
+    @Mock
+    BookResourceAssembler assembler;
+
+    private Book book;
+    private Book book2;
+    private BookResourceAssembler bookAssembler;
+
+    @Before
+    public void setUp() {
+        book = new Book("1234", "Space 1", "Khotim");
+        book.setId(1L);
+        book2 = new Book("9876", "Space 2", "Khotim");
+        book2.setId(2L);
+
+        bookAssembler = new BookResourceAssembler();
+    }
+
     @InjectMocks
     BookService bookService;
 
-    @Mock
-    Book book;
-
-    @Mock
-    Book book2;
-
     @Test
     public void findAll() {
-        when(bookRepository.findAll()).thenReturn(Arrays.asList(book, book2));
-        assertEquals(2, bookService.findByTitleAndStatus("", "").size());
+        List<Book> books = Arrays.asList(book, book2);
+
+        when(bookRepository.findAll()).thenReturn(books);
+        when(assembler.toResources(Mockito.anyCollection())).thenReturn(bookAssembler.toResources(books));
+
+        List<BookResource> resources = bookService.findByTitleAndStatus("", "");
+
+        assertTrue(resources.stream().allMatch(r -> r.hasLink("self")));
+        assertFalse(resources.isEmpty());
     }
 
     @Test
     public void findByTitle() {
-        when(bookRepository.findByTitleContainingIgnoreCase("space")).thenReturn(Collections.singletonList(book));
-        assertEquals(1, bookService.findByTitleAndStatus("space", "").size());
+        List<Book> books = Collections.singletonList(book);
 
-        when(bookRepository.findByStatusIgnoreCase(Book.SHELVED)).thenReturn(Arrays.asList(book, book2));
-        assertEquals(2, bookService.findByTitleAndStatus("", Book.SHELVED).size());
+        when(bookRepository.findByTitleContainingIgnoreCase("space")).thenReturn(books);
+        when(assembler.toResources(Mockito.anyCollection())).thenReturn(bookAssembler.toResources(books));
 
-        when(bookRepository.findByTitleContainingIgnoreCaseAndStatusIgnoreCase("space", Book.NOT_SHELVED)).thenReturn(Arrays.asList(book, book2));
-        assertEquals(2, bookService.findByTitleAndStatus("space", Book.NOT_SHELVED).size());
+        List<BookResource> resources = bookService.findByTitleAndStatus("space", "");
+
+        assertTrue(resources.stream().allMatch(r -> r.hasLink("self")));
+        assertFalse(resources.isEmpty());
     }
 
     @Test
     public void findByStatus() {
-        when(bookRepository.findByStatusIgnoreCase(Book.SHELVED)).thenReturn(Arrays.asList(book, book2));
-        assertEquals(2, bookService.findByTitleAndStatus("", Book.SHELVED).size());
+        List<Book> books = Arrays.asList(book, book2);
+
+        when(bookRepository.findByStatusIgnoreCase(Book.SHELVED)).thenReturn(books);
+        when(assembler.toResources(Mockito.anyCollection())).thenReturn(bookAssembler.toResources(books));
+
+        List<BookResource> resources = bookService.findByTitleAndStatus("", Book.SHELVED);
+
+        assertTrue(resources.stream().allMatch(r -> r.hasLink("self")));
+        assertFalse(resources.isEmpty());
     }
 
     @Test
     public void findByTitleAndStatus() {
-        when(bookRepository.findByTitleContainingIgnoreCaseAndStatusIgnoreCase("space", Book.NOT_SHELVED)).thenReturn(Arrays.asList(book, book2));
-        assertEquals(2, bookService.findByTitleAndStatus("space", Book.NOT_SHELVED).size());
+        List<Book> books = Arrays.asList(book, book2);
+
+        when(assembler.toResources(Mockito.anyCollection())).thenReturn(bookAssembler.toResources(books));
+
+        List<BookResource> resources = bookService.findByTitleAndStatus("space", Book.SHELVED);
+
+        assertTrue(resources.stream().allMatch(r -> r.hasLink("self")));
+        assertFalse(resources.isEmpty());
     }
 
     @Test
@@ -76,16 +109,17 @@ public class BookServiceTest {
     @Test
     public void save() {
         Book newBook = new Book("9876", "Space Adventure 1", "Khotim");
+        newBook.setId(1L);
+
+        BookResourceAssembler bookAssembler = new BookResourceAssembler();
 
         when(bookRepository.save(newBook)).thenReturn(newBook);
+        when(assembler.toResource(newBook)).thenReturn(bookAssembler.toResource(newBook));
 
         BookResource testBook = bookService.save(newBook);
 
-        assertNotNull(testBook.getIsbn());
-        assertNotNull(testBook.getTitle());
-        assertNotNull(testBook.getAuthor());
-        assertEquals("Space Adventure 1", testBook.getTitle());
-        assertEquals(newBook.getShelf().getName(), testBook.getShelfId());
+        assertTrue(testBook.hasLink("self"));
+        assertNotNull(testBook.getContent());
     }
 
     @Test

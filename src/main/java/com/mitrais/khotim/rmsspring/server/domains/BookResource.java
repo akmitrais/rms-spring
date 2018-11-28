@@ -1,10 +1,9 @@
 package com.mitrais.khotim.rmsspring.server.domains;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
-import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.Resource;
 
 /**
  * Class defined for exposing book resource as JSON.
@@ -12,11 +11,12 @@ import org.springframework.hateoas.ResourceSupport;
  * @author Khotim
  */
 @JsonPropertyOrder({"bookId", "isbn", "title", "author", "status", "shelfId"})
-public class BookResource extends ResourceSupport {
+public class BookResource extends Resource<Book> {
 	@JsonIgnore
 	private final Book book;
 	
-	public BookResource(Book book) {
+	public BookResource(Book book, Link... links) {
+		super(book, links);
 		this.book = book;
 	}
 
@@ -25,7 +25,6 @@ public class BookResource extends ResourceSupport {
      * 
 	 * @return The value of book id or throw exception if not book found.
 	 */
-	@JsonProperty("bookId")
 	public Long getBookId() {
 		if (this.book.getId() == null) {
 			throw new RuntimeException("Couldn't find any book.");
@@ -75,7 +74,11 @@ public class BookResource extends ResourceSupport {
 	 * 
 	 * @return The name of shelf name
 	 */
-	public String getShelfId() {
-		return this.book.getShelf().getName();
+	public String getShelf() {
+		if (this.book.getShelf() != null) {
+			return this.book.getShelf().getName();
+		}
+
+		return "";
 	}
 }

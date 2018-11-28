@@ -1,23 +1,28 @@
 package com.mitrais.khotim.rmsspring.server.domains;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.Value;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.Resource;
 
 import java.util.List;
 
-@Value
 @JsonPropertyOrder({"shelfId", "name", "maxCapacity", "currentCapacity", "books"})
-public class ShelfJSON {
+public class ShelfResource extends Resource<Shelf> {
+	@JsonIgnore
 	private final Shelf shelf;
-	
-    /**
+
+	public ShelfResource(Shelf shelf, Link... links) {
+		super(shelf, links);
+		this.shelf = shelf;
+	}
+
+	/**
      * Gets shelf id.
      * 
 	 * @return The value of shelf id.
 	 */
-	@JsonProperty("shelfId")
-	public Long getId() {
+	public Long getShelfId() {
 		if (this.shelf.getId() == null) {
 			throw new RuntimeException("Couldn't find any shelf.");
 		}

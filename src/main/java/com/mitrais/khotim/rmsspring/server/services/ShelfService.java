@@ -1,9 +1,10 @@
 package com.mitrais.khotim.rmsspring.server.services;
 
+import com.mitrais.khotim.rmsspring.server.assemblers.ShelfResourceAssembler;
 import com.mitrais.khotim.rmsspring.server.domains.Book;
 import com.mitrais.khotim.rmsspring.server.domains.Shelf;
+import com.mitrais.khotim.rmsspring.server.domains.ShelfResource;
 import com.mitrais.khotim.rmsspring.server.repositories.ShelfRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +14,12 @@ import java.util.Optional;
 @Service
 public class ShelfService {
     private final ShelfRepository shelfRepository;
+    private final ShelfResourceAssembler assembler;
 
     @Autowired
-    public ShelfService(ShelfRepository shelfRepository) {
+    public ShelfService(ShelfRepository shelfRepository, ShelfResourceAssembler assembler) {
         this.shelfRepository = shelfRepository;
+        this.assembler = assembler;
     }
 
     /**
@@ -26,12 +29,12 @@ public class ShelfService {
      * @param book Existing book.
      * @return Shelf instance.
      */
-    public Shelf addBook(Shelf shelf, Book book) {
+    public ShelfResource addBook(Shelf shelf, Book book) {
         book.setStatus(Book.SHELVED);
         shelf.setCurrentCapacity(shelf.getCurrentCapacity() + 1);
         shelf.addBook(book);
 
-        return shelfRepository.save(shelf);
+        return assembler.toResource(shelfRepository.save(shelf));
     }
 
     /**
@@ -41,29 +44,33 @@ public class ShelfService {
      * @param book Existing book.
      * @return Shelf instance.
      */
-    public Shelf removeBook(Shelf shelf, Book book) {
+    public ShelfResource removeBook(Shelf shelf, Book book) {
         book.setStatus(Book.NOT_SHELVED);
         shelf.setCurrentCapacity(shelf.getCurrentCapacity() - 1);
         shelf.removeBook(book);
 
-        return shelfRepository.save(shelf);
+        return assembler.toResource(shelfRepository.save(shelf));
     }
 
     public Optional<Shelf> findById(Long id) {
         return shelfRepository.findById(id);
     }
 
-    public List<Shelf> findAll() {
-        return shelfRepository.findAll();
+    public List<ShelfResource> findAll() {
+        return assembler.toResources(shelfRepository.findAll());
     }
 
-    public Shelf save(Shelf shelf) {
-        return shelfRepository.save(shelf);
+    public ShelfResource save(Shelf shelf) {
+        return assembler.toResource(shelfRepository.save(shelf));
     }
 
     public boolean deleteById(Long id) {
         shelfRepository.deleteById(id);
 
         return true;
+    }
+
+    public ShelfResource toResource(Shelf shelf) {
+        return assembler.toResource(shelf);
     }
 }
