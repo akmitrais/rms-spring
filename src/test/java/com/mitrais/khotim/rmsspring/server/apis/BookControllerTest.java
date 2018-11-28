@@ -30,8 +30,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mitrais.khotim.rmsspring.server.assemblers.BookResourceAssembler;
 import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.domains.BookResource;
 import com.mitrais.khotim.rmsspring.server.services.BookService;
 
 @RunWith(SpringRunner.class)
@@ -43,11 +43,9 @@ public class BookControllerTest {
     @MockBean
     private BookService bookService;
 
-    @MockBean
-    private BookResourceAssembler assembler;
-
     private Book book;
-    private Book book2;
+    private BookResource bookR;
+    private BookResource bookR2;
     private ObjectMapper mapper;
 
     private static final String BASE_PATH = "http://localhost";
@@ -57,11 +55,17 @@ public class BookControllerTest {
 
     @Before
     public void setUp() {
-        book = new Book("9876", "Space 1", "Khotim");
+        book = new Book("1234", "Space 2", "Khotim");
+        book.setId(2L);
+        
+        bookR2 = new BookResource(book);
+        
         book.setId(1L);
-
-        book2 = new Book("1234", "Space 2", "Khotim");
-        book2.setId(2L);
+        book.setIsbn("9876");
+        book.setTitle("Space 1");
+        book.setAuthor("Khotim");
+        
+        bookR = new BookResource(book);
         
         mapper = new ObjectMapper();
 
@@ -72,7 +76,7 @@ public class BookControllerTest {
     private void verifyJson(final ResultActions action) throws Exception {
         action
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE + ";charset=UTF-8"))
-                .andExpect(jsonPath("id", is(book.getId().intValue())))
+                .andExpect(jsonPath("bookId", is(book.getId().intValue())))
                 .andExpect(jsonPath("isbn", is(book.getIsbn())))
                 .andExpect(jsonPath("title", is(book.getTitle())))
                 .andExpect(jsonPath("author", is(book.getAuthor())))
@@ -82,10 +86,9 @@ public class BookControllerTest {
 
     @Test
     public void getAllReturnsCorrectResponse() throws Exception {
-        List<Book> books = Arrays.asList(book, book2);
+        List<BookResource> books = Arrays.asList(bookR, bookR2);
 
         Mockito.when(bookService.findByTitleAndStatus(Mockito.anyString(), Mockito.anyString())).thenReturn(books);
-        Mockito.when(assembler.toResource(Mockito.any(Book.class))).thenCallRealMethod();
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/books"))
                 .andDo(print())
@@ -97,8 +100,8 @@ public class BookControllerTest {
 
     @Test
     public void getOneBookWhenExists() throws Exception {
-        Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
-        Mockito.when(assembler.toResource(Mockito.any(Book.class))).thenCallRealMethod();
+    	Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
+        Mockito.when(bookService.toResource(Mockito.any(Book.class))).thenReturn(bookR);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get("/api/books/{id}", book.getId());
         ResultActions result = mockMvc.perform(request).andDo(print()).andExpect(status().isOk());
@@ -115,8 +118,7 @@ public class BookControllerTest {
     
     @Test
     public void createNewBookReturnsCorrectResponse() throws Exception {
-    	Mockito.when(bookService.save(Mockito.any(Book.class))).thenReturn(book);
-    	Mockito.when(assembler.toResource(Mockito.any(Book.class))).thenCallRealMethod();
+    	Mockito.when(bookService.save(Mockito.any(Book.class))).thenReturn(bookR);
     	
     	MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/api/books")
     			.contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -142,8 +144,7 @@ public class BookControllerTest {
 
     @Test
     public void updateExistingBookReturnsCorrectResponse() throws Exception {
-        Mockito.when(bookService.save(Mockito.any(Book.class))).thenReturn(book);
-        Mockito.when(assembler.toResource(Mockito.any(Book.class))).thenCallRealMethod();
+        Mockito.when(bookService.save(Mockito.any(Book.class))).thenReturn(bookR);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/books/{id}", book.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)

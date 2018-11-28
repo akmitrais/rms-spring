@@ -4,26 +4,29 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import lombok.Value;
+import org.springframework.hateoas.ResourceSupport;
 
 /**
  * Class defined for exposing book resource as JSON.
  * 
  * @author Khotim
  */
-@Value
 @JsonPropertyOrder({"bookId", "isbn", "title", "author", "status", "shelfId"})
-public class BookJSON {
+public class BookResource extends ResourceSupport {
 	@JsonIgnore
 	private final Book book;
 	
-    /**
+	public BookResource(Book book) {
+		this.book = book;
+	}
+
+	/**
      * Gets book id.
      * 
 	 * @return The value of book id or throw exception if not book found.
 	 */
 	@JsonProperty("bookId")
-	public Long getId() {
+	public Long getBookId() {
 		if (this.book.getId() == null) {
 			throw new RuntimeException("Couldn't find any book.");
 		}

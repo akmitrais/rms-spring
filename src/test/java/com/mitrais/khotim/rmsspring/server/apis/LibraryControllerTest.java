@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mitrais.khotim.rmsspring.server.assemblers.ShelfResourceAssembler;
 import com.mitrais.khotim.rmsspring.server.domains.Book;
 import com.mitrais.khotim.rmsspring.server.domains.Shelf;
+import com.mitrais.khotim.rmsspring.server.domains.ShelfJSON;
 import com.mitrais.khotim.rmsspring.server.services.BookService;
 import com.mitrais.khotim.rmsspring.server.services.ShelfService;
 
@@ -96,7 +97,7 @@ public class LibraryControllerTest {
         List<Shelf> shelves = Arrays.asList(shelf, shelf2);
 
         Mockito.when(shelfService.findAll()).thenReturn(shelves);
-        Mockito.when(assembler.toResource(Mockito.any(Shelf.class))).thenCallRealMethod();
+        Mockito.when(assembler.toResource(Mockito.any(ShelfJSON.class))).thenCallRealMethod();
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/libraries"))
                 .andDo(print())
@@ -109,7 +110,7 @@ public class LibraryControllerTest {
     @Test
     public void getOneShelfWhenExists() throws Exception {
         Mockito.when(shelfService.findById(Mockito.anyLong())).thenReturn(Optional.of(shelf));
-        Mockito.when(assembler.toResource(shelf)).thenCallRealMethod();
+        Mockito.when(assembler.toResource(new ShelfJSON(shelf))).thenCallRealMethod();
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
         		.get("/api/libraries/{id}", shelf.getId());
@@ -128,7 +129,7 @@ public class LibraryControllerTest {
     @Test
     public void createNewShelfReturnsCorrectResponse() throws Exception {
     	Mockito.when(shelfService.save(Mockito.any(Shelf.class))).thenReturn(shelf);
-    	Mockito.when(assembler.toResource(Mockito.any(Shelf.class))).thenCallRealMethod();
+    	Mockito.when(assembler.toResource(Mockito.any(ShelfJSON.class))).thenCallRealMethod();
     	
     	MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/api/libraries")
     			.contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -155,7 +156,7 @@ public class LibraryControllerTest {
     @Test
     public void updateExistingShelfReturnsCorrectResponse() throws Exception {
         Mockito.when(shelfService.save(Mockito.any(Shelf.class))).thenReturn(shelf);
-        Mockito.when(assembler.toResource(Mockito.any(Shelf.class))).thenCallRealMethod();
+        Mockito.when(assembler.toResource(Mockito.any(ShelfJSON.class))).thenCallRealMethod();
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/api/libraries/{id}", shelf.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -285,7 +286,7 @@ public class LibraryControllerTest {
         Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
         Mockito.when(shelfService.addBook(Mockito.any(Shelf.class), Mockito.any(Book.class)))
         	.thenReturn(shelf);
-        Mockito.when(assembler.toResource(Mockito.any(Shelf.class))).thenCallRealMethod();
+        Mockito.when(assembler.toResource(Mockito.any(ShelfJSON.class))).thenCallRealMethod();
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
         		.patch("/api/libraries/{id}/addBook", shelf.getId())
@@ -346,7 +347,7 @@ public class LibraryControllerTest {
         Mockito.when(bookService.findById(Mockito.anyLong())).thenReturn(Optional.of(book));
         Mockito.when(shelfService.removeBook(Mockito.any(Shelf.class), Mockito.any(Book.class)))
         	.thenReturn(shelf);
-        Mockito.when(assembler.toResource(Mockito.any(Shelf.class))).thenCallRealMethod();
+        Mockito.when(assembler.toResource(Mockito.any(ShelfJSON.class))).thenCallRealMethod();
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
         		.patch("/api/libraries/{id}/removeBook", shelf.getId())

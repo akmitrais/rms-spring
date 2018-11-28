@@ -1,7 +1,5 @@
 package com.mitrais.khotim.rmsspring.server.domains;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,18 +12,10 @@ import java.util.List;
 @Data
 @Entity
 @NoArgsConstructor
-@JsonIdentityInfo(
-    generator = ObjectIdGenerators.PropertyGenerator.class,
-    property = "id"
-)
 public class Shelf {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "shelf_id")
     private Long id;
-
-    @Column(name = "shelf_id", insertable = false, updatable = false)
-    private Long shelfId;
 
     @NotBlank
     private String name;

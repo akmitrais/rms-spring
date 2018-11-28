@@ -1,6 +1,7 @@
 package com.mitrais.khotim.rmsspring.server.services;
 
 import com.mitrais.khotim.rmsspring.server.domains.Book;
+import com.mitrais.khotim.rmsspring.server.domains.BookResource;
 import com.mitrais.khotim.rmsspring.server.repositories.BookRepository;
 import com.mitrais.khotim.rmsspring.server.services.BookService;
 
@@ -78,13 +79,13 @@ public class BookServiceTest {
 
         when(bookRepository.save(newBook)).thenReturn(newBook);
 
-        Book testBook = bookService.save(newBook);
+        BookResource testBook = bookService.save(newBook);
 
         assertNotNull(testBook.getIsbn());
         assertNotNull(testBook.getTitle());
         assertNotNull(testBook.getAuthor());
         assertEquals("Space Adventure 1", testBook.getTitle());
-        assertEquals(newBook.getShelf(), testBook.getShelf());
+        assertEquals(newBook.getShelf().getName(), testBook.getShelfId());
     }
 
     @Test
