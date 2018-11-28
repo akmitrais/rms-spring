@@ -3,31 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>RMS Spring</title>
-    <style>
-        table {
-            border-collapse: collapse;
-        }
-        td, th {
-            border: 1px solid #999;
-            padding: 0.5rem;
-            text-align: left;
-        }
-        .link-button {
-            background: none;
-            border: none;
-            color: blue;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 1em;
-            font-family: serif;
-        }
-        .link-button:focus {
-            outline: none;
-        }
-        .link-button:active {
-            color:red;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <h1>Resource Management System with Spring</h1>
@@ -66,7 +42,7 @@
     <a th:href="@{'/libraries'}">Refresh</a>
 	<hr />
 	<h3>Library Form</h3>
-    <form method="post" th:object="${shelf}">
+    <form method="post" th:action="@{''}" th:object="${shelf}">
         <input type="text" th:field="*{name}" th:value="*{name}" placeholder="Name" />
         <input type="text" th:field="*{maxCapacity}" th:value="*{maxCapacity}" placeholder="Max Capacity"/>
         <input type="submit" value="Submit" />

@@ -3,31 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>RMS Spring</title>
-    <style>
-        table {
-            border-collapse: collapse;
-        }
-        td, th {
-            border: 1px solid #999;
-            padding: 0.5rem;
-            text-align: left;
-        }
-        .link-button {
-            background: none;
-            border: none;
-            color: blue;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 1em;
-            font-family: serif;
-        }
-        .link-button:focus {
-            outline: none;
-        }
-        .link-button:active {
-            color:red;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <h1>Resource Management System with Spring</h1>
@@ -70,7 +46,7 @@
     <a th:href="@{'/books'}">Refresh</a>
 	<hr />
 	<h3>Book Form</h3>
-    <form method="post" th:object="${book}">
+    <form method="post" th:action="@{''}" th:object="${book}">
         <input type="text" th:field="*{isbn}" th:value="*{isbn}" placeholder="ISBN" />
         <input type="text" th:field="*{title}" th:value="*{title}" placeholder="Title"/>
         <input type="text" th:field="*{author}" th:value="*{author}" placeholder="Author"/>
