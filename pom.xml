@@ -8,7 +8,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>RMS Springpu</name>
+    <name>RMS Spring</name>
     <description>Resource Management System with Spring Framework</description>
 
     <parent>
