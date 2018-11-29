@@ -7,6 +7,7 @@ import com.mitrais.khotim.rmsspring.server.exceptions.ErrorDetails;
 import com.mitrais.khotim.rmsspring.server.exceptions.ResourceNotFoundException;
 import com.mitrais.khotim.rmsspring.server.services.BookService;
 import com.mitrais.khotim.rmsspring.server.services.ShelfService;
+import com.mitrais.khotim.rmsspring.server.validations.ShelfValidation;
 import com.mitrais.khotim.rmsspring.server.validations.ValidationMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
@@ -20,9 +21,6 @@ import org.springframework.web.context.request.WebRequest;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
@@ -101,7 +99,7 @@ public class LibraryController {
 
     @PatchMapping("/{id}/addBook")
     public ResponseEntity<?> addBook(@PathVariable final long id, @RequestBody Book pBook, WebRequest request) {
-        return doOperation(id, pBook, "add", request);
+    	return doOperation(id, pBook, "add", request);
     }
 
     @PatchMapping("/{id}/removeBook")
@@ -110,60 +108,21 @@ public class LibraryController {
     }
 
     private ResponseEntity<?> doOperation(final long id, Book pBook, String operation, WebRequest request) {
-        Map<String, String> messages = new HashMap<>();
-        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
-        Object responseBody = new ErrorDetails(messages, request.getDescription(false));
-
-        Shelf shelf = shelfService.findById(id).orElse(null);
-        Book book = bookService.findById(pBook.getId()).orElseThrow(() -> new ResourceNotFoundException("Cannot find book with id " + id));
-
-        do {
-        	if (shelf == null) {
-        		messages.put("shelf", "There's no shelf found with id " + id);
-        		httpStatus = HttpStatus.NOT_FOUND;
-        		break;
-        	}
-        	
-        	if (book == null) {
-                messages.put("book", "There's no book found with id " + pBook.getId());
-                httpStatus = HttpStatus.NOT_FOUND;
-                break;
-        	}
-        	
-        	if (operation.equals("remove")) {
-                if (!shelf.getBooks().contains(book)) {
-                    messages.put("shelf", "There's no book " + book.getTitle() + " in shelf " + shelf.getName());
-                    break;
-                }
-
-                responseBody = shelfService.removeBook(shelf, book);
-                httpStatus = HttpStatus.OK;
-                break;
-            }
-        	
-        	if (shelf.getCurrentCapacity() == shelf.getMaxCapacity()) {
-                messages.put("shelf", "Shelf " + shelf.getName() + " already reached maximum capacity");
-                break;
-            }
-        	
-        	if (shelf.getBooks().contains(book)) {
-                messages.put("shelf", "Book " + book.getTitle() + " already exists in shelf " + shelf.getName());
-                break;
-            }
-
-            if (book.getStatus().equals(Book.SHELVED)) {
-            	messages.put("book", "Book " + book.getTitle() + " is already shelved in shelf " + book.getShelf().getName());
-                break;
-            }
-            
-            responseBody = shelfService.addBook(shelf, book);
-            httpStatus = HttpStatus.OK;
-        } while (false);
+    	Shelf shelf = shelfService.findById(id)
+    			.orElseThrow(() -> new ResourceNotFoundException("Cannot find shelf with id " + id));
+    	Book book = bookService.findById(id)
+    			.orElseThrow(() -> new ResourceNotFoundException("Cannot find book with id " + pBook.getId()));
+    	
+    	ShelfValidation validation = operation.equals("add") ? shelfService.validateAddBook(shelf, book) : shelfService.validateRemoveBook(shelf, book);
+    	
+    	if (!validation.isValid()) {
+    		return ResponseEntity.badRequest()
+    				.body(new ErrorDetails(validation.getMessages(), request.getDescription(false)));
+    	}
+    	
+        shelf = shelfService.findById(id)
+    			.orElseThrow(() -> new ResourceNotFoundException("Cannot find shelf with id " + id)); 
         
-        if (responseBody.getClass() == ErrorDetails.class) {
-        	((ErrorDetails) responseBody).setMessages(messages);
-        }
-        
-        return ResponseEntity.status(httpStatus).body(responseBody);
+        return ResponseEntity.ok(shelfService.toResource(shelf));
     }
 }

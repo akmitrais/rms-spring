@@ -35,14 +35,4 @@ public class Shelf {
         this.name = name;
         this.maxCapacity = maxCapacity;
     }
-
-    public void addBook(Book book) {
-        books.add(book);
-        book.setShelf(this);
-    }
-
-    public void removeBook(Book book) {
-        books.remove(book);
-        book.setShelf(null);
-    }
 }

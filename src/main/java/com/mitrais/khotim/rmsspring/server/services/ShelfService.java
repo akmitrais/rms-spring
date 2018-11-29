@@ -5,6 +5,8 @@ import com.mitrais.khotim.rmsspring.server.domains.Book;
 import com.mitrais.khotim.rmsspring.server.domains.Shelf;
 import com.mitrais.khotim.rmsspring.server.domains.ShelfResource;
 import com.mitrais.khotim.rmsspring.server.repositories.ShelfRepository;
+import com.mitrais.khotim.rmsspring.server.validations.ShelfValidation;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +34,8 @@ public class ShelfService {
     public ShelfResource addBook(Shelf shelf, Book book) {
         book.setStatus(Book.SHELVED);
         shelf.setCurrentCapacity(shelf.getCurrentCapacity() + 1);
-        shelf.addBook(book);
+        shelf.getBooks().add(book);
+        book.setShelf(shelf);
 
         return assembler.toResource(shelfRepository.save(shelf));
     }
@@ -47,7 +50,8 @@ public class ShelfService {
     public ShelfResource removeBook(Shelf shelf, Book book) {
         book.setStatus(Book.NOT_SHELVED);
         shelf.setCurrentCapacity(shelf.getCurrentCapacity() - 1);
-        shelf.removeBook(book);
+        shelf.getBooks().remove(book);
+        book.setShelf(null);
 
         return assembler.toResource(shelfRepository.save(shelf));
     }
@@ -73,4 +77,34 @@ public class ShelfService {
     public ShelfResource toResource(Shelf shelf) {
         return assembler.toResource(shelf);
     }
+
+    public ShelfValidation validateAddBook(Shelf shelf, Book book) {
+    	ShelfValidation validation = new ShelfValidation();
+    	
+    	if (shelf.getCurrentCapacity() == shelf.getMaxCapacity()) {
+    		validation.addMessage("shelf", "Shelf " + shelf.getName() + " already reached maximum capacity");
+    	} else if (shelf.getBooks().contains(book)) {
+    		validation.addMessage("shelf", "Book " + book.getTitle() + " already exists in shelf " + shelf.getName());
+    	} else if (book.getStatus().equals(Book.SHELVED)) {
+    		validation.addMessage("book", "Book " + book.getTitle() + " is already shelved in shelf " + book.getShelf().getName());
+    	} else {
+    		validation.setValid(true);
+    		addBook(shelf, book);
+    	}
+    	
+    	return validation;
+    }
+    
+	public ShelfValidation validateRemoveBook(Shelf shelf, Book book) {
+		ShelfValidation validation = new ShelfValidation();
+		
+		if (!shelf.getBooks().contains(book)) {
+            validation.addMessage("shelf", "There's no book " + book.getTitle() + " in shelf " + shelf.getName());
+        } else {
+			validation.setValid(true);
+			removeBook(shelf, book);
+		}
+		
+		return validation;
+	}
 }
