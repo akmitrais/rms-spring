@@ -1,2 +1,2 @@
 server.port=8890
-remote.uri="http://localhost:8880"
+remote.uri=http://localhost:8880
