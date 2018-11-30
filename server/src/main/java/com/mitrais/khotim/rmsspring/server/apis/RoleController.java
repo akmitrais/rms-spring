@@ -1,6 +1,6 @@
 package com.mitrais.khotim.rmsspring.server.apis;
 
-import com.mitrais.khotim.rmsspring.server.services.UserService;
+import com.mitrais.khotim.rmsspring.server.services.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.ResponseEntity;
@@ -12,19 +12,19 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/users")
-public class UserController {
-    private final UserService userService;
+@RequestMapping("/roles")
+public class RoleController {
+    private final RoleService roleService;
 
     @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
     }
 
     @GetMapping
     public ResponseEntity<?> getAll() {
         return ResponseEntity.ok(new Resources<>(
-                userService.findAll(),
+                roleService.findAll(),
                 linkTo(methodOn(RoleController.class).getAll()).withSelfRel()));
     }
 }
