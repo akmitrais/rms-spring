@@ -60,11 +60,18 @@ public class AuthController {
         return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
     }
 
+    /**
+     * Registers a new user and set its role as super administrator.
+     * This function should only be called once when no single user found in database.
+     *
+     * @param signUp The signup data.
+     * @return Successful registration message or
+     */
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignUp signUp) {
-        if (userService.existsByEmail(signUp.getEmail())) {
-            return new ResponseEntity<>(new ApiResponse(false, "Email Address already in use!"),
-                    HttpStatus.BAD_REQUEST);
+        if (!userService.findAll().isEmpty()) {
+            return new ResponseEntity<>(new ApiResponse(false, "The requested page is current not available."),
+                    HttpStatus.NOT_FOUND);
         }
 
         // Creating user's account
@@ -72,7 +79,7 @@ public class AuthController {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        Role userRole = roleService.findByName(RoleName.ROLE_USER)
+        Role userRole = roleService.findByName(RoleName.ROLE_ADMIN)
                 .orElseThrow(() -> new AppException("User role not set."));
 
         user.setRoles(Collections.singleton(userRole));
